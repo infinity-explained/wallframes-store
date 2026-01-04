@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WallFrames - Premium Decor Store 2026</title>
+    
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- CONFIG ---
+        const ADMIN_WHATSAPP = "923234278614"; // Tera Number Fixed
+        const ADMIN_EMAIL = "theprodigyabdullah167@gmail.com";
+        const CURRENT_YEAR = "2026"; // 2026 Fixed
+
+        // --- RELIABLE IMAGE DATA ---
+        // Using specific Unsplash IDs to ensure they load
+        const initialProducts = [
+            { id: 1, name: "Royal Golden Abstract Frame", price: 2500, category: "Luxury", image: "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?q=80&w=800&auto=format&fit=crop" },
+            { id: 2, name: "Serene Nature Wall Art", price: 1800, category: "Nature", image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop" },
+            { id: 3, name: "Modern Minimalist Black", price: 1200, category: "Modern", image: "https://images.unsplash.com/photo-1582037928769-181f242af501?q=80&w=800&auto=format&fit=crop" },
+            { id: 4, name: "Vintage Wooden Carving", price: 3200, category: "Vintage", image: "https://images.unsplash.com/photo-1549887552-93f954d1d960?q=80&w=800&auto=format&fit=crop" },
+            { id: 5, name: "Abstract Blue Waves", price: 2100, category: "Modern", image: "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=800&auto=format&fit=crop" },
+            { id: 6, name: "Classic Family Portrait Frame", price: 950, category: "Classic", image: "https://images.unsplash.com/photo-1531346878377-a513bc95f30f?q=80&w=800&auto=format&fit=crop" },
+            { id: 7, name: "Nordic White Art", price: 1600, category: "Modern", image: "https://images.unsplash.com/photo-1507643179173-617d6a7982a2?q=80&w=800&auto=format&fit=crop" },
+            { id: 8, name: "Golden Leaf Luxury", price: 2800, category: "Luxury", image: "https://images.unsplash.com/photo-1617104424032-b9bd6972d0e4?q=80&w=800&auto=format&fit=crop" },
+        ];
+
+        function App() {
+            // --- STATE ---
+            const [view, setView] = useState("home"); 
+            const [products, setProducts] = useState(initialProducts);
+            const [cart, setCart] = useState([]);
+            const [user, setUser] = useState({
+                name: "Guest User",
+                email: "",
+                phone: "",
+                address: "",
+                wallet: 5000, 
+                isLoggedIn: false
+            });
+            const [orderHistory, setOrderHistory] = useState([]); // New Order History
+            const [searchTerm, setSearchTerm] = useState("");
+            const [showSidebar, setShowSidebar] = useState(false);
+            const [filteredProducts, setFilteredProducts] = useState(products);
+
+            // --- SEARCH LOGIC ---
+            useEffect(() => {
+                if (searchTerm === "") {
+                    setFilteredProducts(products);
+                } else {
+                    const filtered = products.filter(p => 
+                        p.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+                    );
+                    setFilteredProducts(filtered);
+                }
+            }, [searchTerm, products]);
+
+            // --- CART & ORDER LOGIC ---
+            const addToCart = (product) => {
+                setCart([...cart, { ...product, cartId: Date.now() }]);
+                // No alert needed, small UI feedback is better, but keeping simple
+            };
+
+            const removeFromCart = (cartId) => {
+                setCart(cart.filter(item => item.cartId !== cartId));
+            };
+
+            const totalAmount = cart.reduce((acc, item) => acc + item.price, 0);
+
+            const handlePlaceOrder = () => {
+                if (!user.name || !user.phone || !user.address) {
+                    alert("Bhai, pehle apni delivery details (Profile) poori karo!");
+                    setView("profile");
+                    return;
+                }
+
+                if (user.wallet < totalAmount) {
+                    alert("Balance kam hai! Wallet recharge karo.");
+                    return;
+                }
+
+                // 1. Deduct Money
+                setUser({ ...user, wallet: user.wallet - totalAmount });
+                
+                // 2. Save to History
+                const newOrder = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString(),
+                    items: cart,
+                    total: totalAmount,
+                    status: "Processing"
+                };
+                setOrderHistory([newOrder, ...orderHistory]);
+
+                // 3. Prepare WhatsApp Message
+                const itemList = cart.map(i => `- ${i.name} (Rs.${i.price})`).join('%0a');
+                const message = `*NEW ORDER ALERT (2026)*%0a%0a*Customer Name:* ${user.name}%0a*Phone:* ${user.phone}%0a*Address:* ${user.address}%0a%0a*Items Ordered:*%0a${itemList}%0a%0a*Total Amount:* Rs.${totalAmount}%0a*Payment:* Wallet Deducted ?%0a*Status:* Please Confirm Delivery`;
+                
+                // 4. Open WhatsApp
+                window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${message}`, '_blank');
+                
+                // 5. Clear Cart & Success
+                setCart([]);
+                setView("success");
+            };
+
+            const handleNewsletter = (e) => {
+                e.preventDefault();
+                const email = e.target.email.value;
+                alert(`Thanks for subscribing! Notification sent to Admin at ${ADMIN_EMAIL}`);
+                e.target.reset();
+            };
+
+            // --- RENDER HELPERS ---
+            const toggleSidebar = () => setShowSidebar(!showSidebar);
+            const navigateTo = (page) => {
+                setView(page);
+                setShowSidebar(false);
+                window.scrollTo(0,0);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col relative overflow-x-hidden">
+                    
+                    {/* --- SIDEBAR MENU (Mobile/Drawer) --- */}
+                    <div className={`fixed inset-y-0 left-0 z-[60] w-64 bg-slate-900 text-white transform ${showSidebar ? 'translate-x-0' : '-translate-x-full'} sidebar-transition shadow-2xl`}>
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-8">
+                                <h2 className="text-xl font-bold text-yellow-400">WallFrames Menu</h2>
+                                <button onClick={toggleSidebar}><i className="ph ph-x text-2xl"></i></button>
+                            </div>
+                            <ul className="space-y-4 font-medium">
+                                <li onClick={() => navigateTo('home')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-house"></i> Home</li>
+                                <li onClick={() => navigateTo('profile')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-user"></i> Profile</li>
+                                <li onClick={() => navigateTo('orders')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-package"></i> Order History</li>
+                                <li className="h-px bg-slate-700 my-2"></li>
+                                <li onClick={() => navigateTo('about')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-info"></i> About Us</li>
+                                <li onClick={() => navigateTo('privacy')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-shield-check"></i> Privacy Policy</li>
+                                <li onClick={() => navigateTo('terms')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-scroll"></i> Terms of Service</li>
+                                <li onClick={() => navigateTo('faqs')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-question"></i> FAQs</li>
+                                <li onClick={() => navigateTo('support')} className="cursor-pointer hover:text-yellow-400 flex items-center gap-2"><i className="ph ph-headset"></i> Help/Support</li>
+                            </ul>
+                        </div>
+                    </div>
+                    {/* Overlay for sidebar */}
+                    {showSidebar && <div onClick={toggleSidebar} className="fixed inset-0 z-[55] bg-black bg-opacity-50"></div>}
+
+                    {/* --- NAVBAR --- */}
+                    <nav className="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex items-center justify-between h-16">
+                                
+                                {/* Menu & Logo */}
+                                <div className="flex items-center gap-4">
+                                    <button onClick={toggleSidebar} className="text-2xl hover:text-yellow-400">
+                                        <i className="ph ph-list"></i>
+                                    </button>
+                                    <div className="flex items-center cursor-pointer" onClick={() => setView("home")}>
+                                        <i className="ph ph-frame-corners text-3xl text-yellow-400 mr-2"></i>
+                                        <span className="font-bold text-xl tracking-wider">WallFrames</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Search Bar (Live) */}
+                                <div className="hidden md:flex flex-1 mx-8 relative">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search frames by name..." 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full bg-slate-800 text-white rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-400" 
+                                    />
+                                    <i className="ph ph-magnifying-glass absolute right-3 top-2.5 text-slate-400"></i>
+                                    
+                                    {/* Search Suggestions Dropdown */}
+                                    {searchTerm && (
+                                        <div className="absolute top-12 left-0 w-full bg-white text-black rounded-lg shadow-xl overflow-hidden z-50">
+                                            {filteredProducts.length > 0 ? (
+                                                filteredProducts.map(p => (
+                                                    <div key={p.id} onClick={() => {setView("home"); setSearchTerm(p.name);}} className="p-3 hover:bg-yellow-50 cursor-pointer border-b flex items-center gap-3">
+                                                        <img src={p.image} className="w-8 h-8 rounded object-cover" />
+                                                        <span>{p.name}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="p-3 text-gray-500">No frames found.</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Icons */}
+                                <div className="flex items-center space-x-6">
+                                    <div className="flex flex-col items-end cursor-pointer" onClick={() => setView("profile")}>
+                                        <span className="text-xs text-slate-400">Wallet</span>
+                                        <span className="font-bold text-yellow-400">Rs. {user.wallet}</span>
+                                    </div>
+                                    
+                                    <div className="relative cursor-pointer" onClick={() => setView("cart")}>
+                                        <i className="ph ph-shopping-cart text-2xl hover:text-yellow-400 transition"></i>
+                                        {cart.length > 0 && (
+                                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{cart.length}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* --- MAIN CONTENT --- */}
+                    <main className="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
+                        
+                        {/* VIEW: HOME */}
+                        {view === "home" && (
+                            <>
+                                {/* Catchy Hero Banner (Fixed Image) */}
+                                <div className="relative rounded-2xl overflow-hidden shadow-2xl mb-10 h-64 md:h-80">
+                                    <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1600&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover" alt="Interior Design" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent flex flex-col justify-center p-8 md:p-12 text-white">
+                                        <h1 className="text-4xl md:text-6xl font-bold mb-4">Make Your Walls <br/><span className="text-yellow-400">Speak Luxury</span></h1>
+                                        <p className="text-lg opacity-90 max-w-md">The 2026 Collection is here. Handcrafted frames delivered to your doorstep.</p>
+                                    </div>
+                                </div>
+
+                                {/* Product Grid */}
+                                <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                    <i className="ph-fill ph-sparkle text-yellow-500"></i> Trending in 2026
+                                </h2>
+                                
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    {filteredProducts.map(product => (
+                                        <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100">
+                                            <div className="relative h-56 bg-gray-200 overflow-hidden">
+                                                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition"></div>
+                                                <button onClick={() => addToCart(product)} className="absolute bottom-3 right-3 bg-yellow-400 text-slate-900 p-3 rounded-full shadow-lg hover:bg-yellow-500 hover:scale-110 transition transform">
+                                                    <i className="ph ph-plus font-bold text-lg"></i>
+                                                </button>
+                                            </div>
+                                            <div className="p-4">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{product.category}</span>
+                                                <h3 className="font-bold text-slate-800 text-lg leading-tight mt-1 mb-2 truncate">{product.name}</h3>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xl font-extrabold text-slate-900">Rs. {product.price}</span>
+                                                    <div className="flex text-yellow-400 text-xs gap-0.5">
+                                                        <i className="ph-fill ph-star"></i><i className="ph-fill ph-star"></i><i className="ph-fill ph-star"></i><i className="ph-fill ph-star"></i><i className="ph-fill ph-star"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {filteredProducts.length === 0 && (
+                                    <div className="text-center py-20 text-gray-500">
+                                        <p className="text-xl">No frames found matching "{searchTerm}"</p>
+                                        <button onClick={() => setSearchTerm("")} className="mt-2 text-blue-600 underline">Clear Search</button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* VIEW: CART */}
+                        {view === "cart" && (
+                            <div className="max-w-4xl mx-auto">
+                                <h2 className="text-3xl font-bold mb-8">Your Cart</h2>
+                                {cart.length === 0 ? (
+                                    <div className="text-center py-24 bg-white rounded-2xl shadow-sm border border-dashed border-gray-300">
+                                        <i className="ph ph-shopping-bag text-7xl text-gray-200 mb-4"></i>
+                                        <p className="text-xl text-gray-500 font-medium">Your cart is empty.</p>
+                                        <button onClick={() => setView("home")} className="mt-6 bg-slate-900 text-white px-8 py-3 rounded-full font-bold hover:shadow-lg transition">Start Shopping</button>
+                                    </div>
+                                ) : (
+                                    <div className="grid md:grid-cols-3 gap-8">
+                                        <div className="md:col-span-2 space-y-4">
+                                            {cart.map(item => (
+                                                <div key={item.cartId} className="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4">
+                                                    <img src={item.image} className="w-24 h-24 object-cover rounded-lg" />
+                                                    <div className="flex-1">
+                                                        <h3 className="font-bold text-lg">{item.name}</h3>
+                                                        <p className="text-slate-500">Rs. {item.price}</p>
+                                                    </div>
+                                                    <button onClick={() => removeFromCart(item.cartId)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition">
+                                                        <i className="ph ph-trash text-xl"></i>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        
+                                        <div className="bg-white p-6 rounded-xl shadow-lg h-fit border border-gray-100">
+                                            <h3 className="font-bold text-xl mb-6">Order Summary</h3>
+                                            <div className="space-y-3 mb-6">
+                                                <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>Rs. {totalAmount}</span></div>
+                                                <div className="flex justify-between text-gray-600"><span>Delivery Charges</span><span className="text-green-600 font-medium">Free</span></div>
+                                                <div className="h-px bg-gray-200"></div>
+                                                <div className="flex justify-between font-bold text-2xl text-slate-900"><span>Total</span><span>Rs. {totalAmount}</span></div>
+                                            </div>
+                                            
+                                            <div className="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
+                                                <p className="text-sm text-blue-800 flex justify-between items-center">
+                                                    <span>Wallet Balance:</span>
+                                                    <span className="font-bold">Rs. {user.wallet}</span>
+                                                </p>
+                                            </div>
+
+                                            <button onClick={handlePlaceOrder} className="w-full bg-yellow-400 text-slate-900 py-4 rounded-xl font-bold hover:bg-yellow-500 shadow-md transition transform active:scale-95 flex items-center justify-center gap-2">
+                                                Checkout & Order <i className="ph-bold ph-whatsapp-logo"></i>
+                                            </button>
+                                            <p className="text-xs text-center text-gray-400 mt-3">Order details will be sent directly via WhatsApp to Admin.</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* VIEW: ORDER HISTORY */}
+                        {view === "orders" && (
+                            <div className="max-w-4xl mx-auto">
+                                <h2 className="text-2xl font-bold mb-6">My Orders</h2>
+                                {orderHistory.length === 0 ? (
+                                    <div className="bg-white p-8 rounded-xl shadow text-center text-gray-500">No past orders found.</div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {orderHistory.map(order => (
+                                            <div key={order.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                                <div className="flex justify-between items-start mb-4 border-b pb-4">
+                                                    <div>
+                                                        <p className="text-sm text-gray-500">Order ID: #{order.id}</p>
+                                                        <p className="text-sm text-gray-500">Date: {order.date}</p>
+                                                    </div>
+                                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-bold">{order.status}</span>
+                                                </div>
+                                                <div className="space-y-2 mb-4">
+                                                    {order.items.map((item, idx) => (
+                                                        <div key={idx} className="flex justify-between text-sm">
+                                                            <span>{item.name}</span>
+                                                            <span>Rs. {item.price}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="flex justify-end font-bold text-lg">
+                                                    Total: Rs. {order.total}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* VIEW: PROFILE */}
+                        {view === "profile" && (
+                            <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                                <div className="flex items-center gap-6 mb-8 pb-8 border-b">
+                                    <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center text-3xl font-bold text-yellow-400 shadow-lg">
+                                        {user.name.charAt(0)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl font-bold text-slate-900">{user.name}</h2>
+                                        <p className="text-gray-500">{user.email || "No email set"}</p>
+                                        <div className="mt-2 inline-flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                                            <i className="ph-fill ph-wallet text-green-600"></i>
+                                            <span className="text-green-700 font-bold">Rs. {user.wallet}</span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            const amount = prompt("Enter amount to add to wallet:");
+                                            if(amount && !isNaN(amount)) setUser({...user, wallet: user.wallet + parseInt(amount)});
+                                        }}
+                                        className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 text-sm"
+                                    >
+                                        + Recharge
+                                    </button>
+                                </div>
+
+                                <h3 className="font-bold text-xl mb-6 flex items-center gap-2"><i className="ph ph-truck text-yellow-500"></i> Shipping Details</h3>
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                        <input type="text" value={user.name} onChange={(e) => setUser({...user, name: e.target.value})} className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number (+92...)</label>
+                                        <input type="text" value={user.phone} onChange={(e) => setUser({...user, phone: e.target.value})} className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition" placeholder="+92 300 1234567" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address</label>
+                                        <textarea rows="3" value={user.address} onChange={(e) => setUser({...user, address: e.target.value})} className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition" placeholder="House #, Street, City"></textarea>
+                                    </div>
+                                    <button onClick={() => alert("Profile Updated Successfully!")} className="w-full bg-yellow-400 text-slate-900 py-3 rounded-lg font-bold hover:bg-yellow-500 shadow transition">Save Profile</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* VIEW: TEXT PAGES (PRIVACY, TERMS, FAQ, SUPPORT) */}
+                        {view === "privacy" && (
+                            <div className="max-w-4xl mx-auto bg-white p-10 rounded-xl shadow-lg">
+                                <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+                                <p className="text-gray-500 mb-6">Last updated: January 2026</p>
+                                <div className="space-y-6 text-gray-700 leading-relaxed">
+                                    <p>At WallFrames, accessible from our website, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by WallFrames and how we use it.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">Information We Collect</h3>
+                                    <p>When you register for an Account, we may ask for your contact information, including items such as name, company name, address, email address, and telephone number. We use this specifically for order delivery via WhatsApp coordination.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">How We Use Your Information</h3>
+                                    <p>We use the information we collect in various ways, including to provide, operate, and maintain our website; improve, personalize, and expand our website; understand and analyze how you use our website; and communicate with you to provide you with updates and other information relating to the website.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">Log Files</h3>
+                                    <p>WallFrames follows a standard procedure of using log files. These files log visitors when they visit websites. All hosting companies do this and a part of hosting services' analytics.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === "terms" && (
+                            <div className="max-w-4xl mx-auto bg-white p-10 rounded-xl shadow-lg">
+                                <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
+                                <div className="space-y-6 text-gray-700 leading-relaxed">
+                                    <p>Welcome to WallFrames! These terms and conditions outline the rules and regulations for the use of WallFrames' Website.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">1. Acceptance of Terms</h3>
+                                    <p>By accessing this website we assume you accept these terms and conditions. Do not continue to use WallFrames if you do not agree to take all of the terms and conditions stated on this page.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">2. Cookies</h3>
+                                    <p>We employ the use of cookies. By accessing WallFrames, you agreed to use cookies in agreement with the WallFrames' Privacy Policy.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">3. License</h3>
+                                    <p>Unless otherwise stated, WallFrames and/or its licensors own the intellectual property rights for all material on WallFrames. All intellectual property rights are reserved.</p>
+                                    <h3 className="text-xl font-bold text-slate-900">4. Product Pricing</h3>
+                                    <p>We reserve the right to change prices at any time without further notice. However, if you have ordered but not yet paid, we guarantee the price for one month from when the order was placed.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === "faqs" && (
+                            <div className="max-w-4xl mx-auto bg-white p-10 rounded-xl shadow-lg">
+                                <h1 className="text-3xl font-bold mb-8">Frequently Asked Questions</h1>
+                                <div className="space-y-6">
+                                    {[
+                                        {q: "How do I place an order?", a: "Simply add items to your cart, go to checkout, and click 'Order'. Your details will be sent to our admin via WhatsApp automatically."},
+                                        {q: "What is the Wallet System?", a: "You can add virtual money to your wallet to make checkout faster. Currently, this is a demo feature."},
+                                        {q: "How long does delivery take?", a: "Standard delivery takes 3-5 business days across Pakistan."},
+                                        {q: "Can I return a damaged frame?", a: "Yes! If you receive a damaged product, please contact us via the Support page within 24 hours."},
+                                        {q: "Do you offer custom sizes?", a: "Yes, we do. Please contact us on WhatsApp directly for custom orders."}
+                                    ].map((item, i) => (
+                                        <div key={i} className="border-b pb-4">
+                                            <h3 className="font-bold text-lg text-slate-900 mb-2">{item.q}</h3>
+                                            <p className="text-gray-600">{item.a}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {view === "support" && (
+                            <div className="max-w-2xl mx-auto bg-white p-10 rounded-xl shadow-lg text-center">
+                                <i className="ph ph-headset text-6xl text-yellow-400 mb-4"></i>
+                                <h1 className="text-3xl font-bold mb-4">Help & Support</h1>
+                                <p className="text-gray-600 mb-8">Facing issues with your order? We are here to help you 24/7.</p>
+                                
+                                <div className="bg-slate-50 p-6 rounded-lg mb-8 text-left space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600"><i className="ph-fill ph-whatsapp-logo text-xl"></i></div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">WhatsApp Support</p>
+                                            <p className="font-bold text-slate-900">+92 323 4278614</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><i className="ph-fill ph-envelope text-xl"></i></div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Email Support</p>
+                                            <p className="font-bold text-slate-900">{ADMIN_EMAIL}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={() => window.open(`https://wa.me/${ADMIN_WHATSAPP}`, '_blank')} className="bg-green-500 text-white px-8 py-3 rounded-full font-bold hover:bg-green-600 transition">Chat on WhatsApp</button>
+                            </div>
+                        )}
+
+                        {view === "success" && (
+                            <div className="text-center py-20">
+                                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                                    <i className="ph ph-check text-5xl text-green-600"></i>
+                                </div>
+                                <h2 className="text-4xl font-bold mb-4 text-slate-900">Order Placed!</h2>
+                                <p className="text-gray-600 mb-8 max-w-lg mx-auto">Thank you for your order. We have received your request and sent the details to the Admin via WhatsApp. Please check your WhatsApp for confirmation.</p>
+                                <div className="flex justify-center gap-4">
+                                    <button onClick={() => setView("orders")} className="bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-50">View Order History</button>
+                                    <button onClick={() => setView("home")} className="bg-slate-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-slate-800">Continue Shopping</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === "about" && (
+                            <div className="max-w-4xl mx-auto bg-white p-10 rounded-xl shadow-lg">
+                                <h1 className="text-3xl font-bold mb-6">About WallFrames</h1>
+                                <div className="flex flex-col md:flex-row gap-8 items-center">
+                                    <div className="flex-1 text-gray-700 leading-relaxed space-y-4">
+                                        <p>Founded in 2024 and thriving in 2026, WallFrames started with a simple idea: to make premium wall decor accessible to every home in Pakistan.</p>
+                                        <p>We believe that your walls tell a story. Whether it's a memory frozen in time, a piece of abstract art that sparks conversation, or a simple nature frame that brings calm, we have it all.</p>
+                                        <p>Our commitment is quality. Every frame is inspected, every glass is polished, and every package is wrapped with love before it reaches you.</p>
+                                    </div>
+                                    <div className="flex-1">
+                                        <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" className="rounded-xl shadow-lg" alt="About Us" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                    </main>
+
+                    {/* --- FOOTER --- */}
+                    <footer className="bg-slate-900 text-white pt-16 pb-8">
+                        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                            
+                            {/* Brand */}
+                            <div>
+                                <div className="flex items-center mb-4">
+                                    <i className="ph ph-frame-corners text-3xl text-yellow-400 mr-2"></i>
+                                    <span className="font-bold text-2xl tracking-wider">WallFrames</span>
+                                </div>
+                                <p className="text-slate-400 text-sm mb-4">Premium wall decor for modern homes. Quality you can trust, designs you will love.</p>
+                                <div className="flex gap-4">
+                                    <a href="#" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-yellow-400 hover:text-slate-900 transition"><i className="ph-fill ph-facebook-logo"></i></a>
+                                    <a href="#" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-yellow-400 hover:text-slate-900 transition"><i className="ph-fill ph-instagram-logo"></i></a>
+                                    <a href="#" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-yellow-400 hover:text-slate-900 transition"><i className="ph-fill ph-twitter-logo"></i></a>
+                                </div>
+                            </div>
+
+                            {/* Quick Links */}
+                            <div>
+                                <h3 className="font-bold text-lg mb-4 text-yellow-400">Quick Links</h3>
+                                <ul className="space-y-2 text-slate-400">
+                                    <li onClick={() => setView("home")} className="hover:text-white cursor-pointer transition">Home</li>
+                                    <li onClick={() => setView("about")} className="hover:text-white cursor-pointer transition">About Us</li>
+                                    <li onClick={() => setView("orders")} className="hover:text-white cursor-pointer transition">My Orders</li>
+                                    <li onClick={() => setView("support")} className="hover:text-white cursor-pointer transition">Contact Support</li>
+                                </ul>
+                            </div>
+
+                            {/* Policy */}
+                            <div>
+                                <h3 className="font-bold text-lg mb-4 text-yellow-400">Customer Care</h3>
+                                <ul className="space-y-2 text-slate-400">
+                                    <li onClick={() => setView("privacy")} className="hover:text-white cursor-pointer transition">Privacy Policy</li>
+                                    <li onClick={() => setView("terms")} className="hover:text-white cursor-pointer transition">Terms of Service</li>
+                                    <li onClick={() => setView("faqs")} className="hover:text-white cursor-pointer transition">FAQs</li>
+                                    <li onClick={() => setView("profile")} className="hover:text-white cursor-pointer transition">My Account</li>
+                                </ul>
+                            </div>
+
+                            {/* Newsletter */}
+                            <div>
+                                <h3 className="font-bold text-lg mb-4 text-yellow-400">Stay Updated</h3>
+                                <p className="text-slate-400 text-sm mb-4">Subscribe for latest designs and offers.</p>
+                                <form onSubmit={handleNewsletter} className="flex flex-col gap-2">
+                                    <input name="email" type="email" placeholder="Enter your email" required className="bg-slate-800 text-white px-4 py-2 rounded focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+                                    <button type="submit" className="bg-yellow-400 text-slate-900 py-2 rounded font-bold hover:bg-yellow-500 transition">Subscribe</button>
+                                </form>
+                                <p className="text-xs text-slate-500 mt-2">We respect your privacy.</p>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-800 pt-8 text-center">
+                            <p className="text-slate-500">&copy; {CURRENT_YEAR} WallFrames. All rights reserved.</p>
+                            <p className="text-slate-600 text-sm mt-1">Designed by The Prodigy Developer</p>
+                            <p className="text-slate-700 text-xs mt-2">{ADMIN_EMAIL}</p>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
